@@ -93,20 +93,23 @@ if uploaded_files:
         anchor_col = df['Anchor'].fillna('').str.lower()
 
         def categorize_anchor(anchor):
-            if "http" in anchor:
-                return "URL"
-            elif branding in anchor:
-                return "Branding"
-            elif domain in anchor:
-                return "Nom de domaine"
-            elif anchor.strip() in ["cliquez ici", "voir plus", "lire l'article"]:
-                return "Générique"
-            elif anchor.strip() == "" or pd.isna(anchor):
-                return "Vide"
-            elif len(anchor.strip().split()) <= 2:
-                return "Exact match"
-            else:
-                return "Optimisée"
+    anchor = anchor.strip()
+    if anchor == "" or pd.isna(anchor):
+        return "Vide"
+    if "http" in anchor:
+        return "URL"
+    if branding in anchor:
+        return "Branding"
+    if domain in anchor:
+        return "Nom de domaine"
+    if anchor in ["cliquez ici", "voir plus", "lire l'article", "en savoir plus", "ici"]:
+        return "Générique"
+    # Exact match : simulate keyword extraction from target
+    if anchor in df['Target URL'].astype(str).str.lower().apply(lambda url: url.split('/')[-1] if '/' in url else url):
+        return "Exact match"
+    if any(anchor in url.lower() for url in df['Target URL'].astype(str)):
+        return "Optimisée"
+    return "Autre"
 
         df['Anchor Type'] = anchor_col.apply(categorize_anchor)
         anchor_stats = df['Anchor Type'].value_counts().reset_index()
@@ -164,7 +167,9 @@ if uploaded_files:
             dr_comp2 = df2['DR Range'].value_counts().sort_index().reset_index()
             dr_comp2.columns = ['Tranche DR', 'Fichier 2']
 
-            dr_compare = pd.merge(dr_comp1, dr_comp2, on='Tranche DR', how='outer').fillna(0)
+            dr_comp1['Tranche DR'] = dr_comp1['Tranche DR'].astype(str)
+dr_comp2['Tranche DR'] = dr_comp2['Tranche DR'].astype(str)
+dr_compare = pd.merge(dr_comp1, dr_comp2, on='Tranche DR', how='outer').fillna(0)
             st.dataframe(dr_compare)
             fig_comp = px.bar(dr_compare.melt(id_vars='Tranche DR', var_name='Fichier', value_name='Backlinks'),
                               x='Tranche DR', y='Backlinks', color='Fichier', barmode='group',
