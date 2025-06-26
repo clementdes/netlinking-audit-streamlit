@@ -15,6 +15,10 @@ if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
     df.columns = df.columns.str.strip()
 
+    # Convert numeric fields explicitly
+    if 'Domain rating' in df.columns:
+        df['Domain rating'] = pd.to_numeric(df['Domain rating'], errors='coerce')
+
     # Parse dates
     if 'First seen' in df.columns:
         df['First seen'] = pd.to_datetime(df['First seen'], errors='coerce')
@@ -33,7 +37,9 @@ if uploaded_file is not None:
         st.metric("Nombre de domaines référents uniques", df['Referring page URL'].nunique())
 
         if 'Domain rating' in df.columns:
-            st.metric("Domain Rating moyen", round(df['Domain rating'].mean(), 2))
+            mean_dr = df['Domain rating'].mean()
+            if pd.notna(mean_dr):
+                st.metric("Domain Rating moyen", round(mean_dr, 2))
 
         if 'First seen' in df.columns:
             df_month = df.dropna(subset=['First seen']).copy()
@@ -105,6 +111,8 @@ if uploaded_file is not None:
     with tabs[4]:
         st.header("Domaines référents")
         if 'Domain rating' in df.columns and 'Referring page URL' in df.columns:
+            df['Domain rating'] = pd.to_numeric(df['Domain rating'], errors='coerce')
+            df['Domain traffic'] = pd.to_numeric(df['Domain traffic'], errors='coerce')
             top_domains = df.groupby('Referring page URL').agg({
                 'Domain rating': 'mean',
                 'Domain traffic': 'mean',
