@@ -93,27 +93,27 @@ if uploaded_files:
         anchor_col = df['Anchor'].fillna('').str.lower()
 
         def categorize_anchor(anchor):
-    anchor = anchor.strip()
-    if anchor == "" or pd.isna(anchor):
-        return "Vide"
-    if "http" in anchor:
-        return "URL"
-    if branding in anchor:
-        return "Branding"
-    if domain in anchor:
-        return "Nom de domaine"
-    if anchor in ["cliquez ici", "voir plus", "lire l'article", "en savoir plus", "ici"]:
-        return "Générique"
-    # Simulate keyword from URL for Exact match
-    try:
-        target_keywords = df['Target URL'].astype(str).str.lower().apply(lambda url: url.split('/')[-1])
-        if anchor in target_keywords.values:
-            return "Exact match"
-        if any(anchor in url.lower() for url in df['Target URL'].astype(str)):
-            return "Optimisée"
-    except:
-        pass
-    return "Autre"
+        anchor = anchor.strip()
+        if anchor == "" or pd.isna(anchor):
+            return "Vide"
+        if "http" in anchor:
+            return "URL"
+        if branding in anchor:
+            return "Branding"
+        if domain in anchor:
+            return "Nom de domaine"
+        if anchor in ["cliquez ici", "voir plus", "lire l'article", "en savoir plus", "ici"]:
+            return "Générique"
+        # Simulate keyword from URL for Exact match
+        try:
+            target_keywords = df['Target URL'].astype(str).str.lower().apply(lambda url: url.split('/')[-1])
+            if anchor in target_keywords.values:
+                return "Exact match"
+            if any(anchor in url.lower() for url in df['Target URL'].astype(str)):
+                return "Optimisée"
+        except:
+            pass
+        return "Autre"
 
         df['Anchor Type'] = anchor_col.apply(categorize_anchor)
         anchor_stats = df['Anchor Type'].value_counts().reset_index()
