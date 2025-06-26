@@ -104,11 +104,15 @@ if uploaded_files:
         return "Nom de domaine"
     if anchor in ["cliquez ici", "voir plus", "lire l'article", "en savoir plus", "ici"]:
         return "Générique"
-    # Exact match : simulate keyword extraction from target
-    if anchor in df['Target URL'].astype(str).str.lower().apply(lambda url: url.split('/')[-1] if '/' in url else url):
-        return "Exact match"
-    if any(anchor in url.lower() for url in df['Target URL'].astype(str)):
-        return "Optimisée"
+    # Simulate keyword from URL for Exact match
+    try:
+        target_keywords = df['Target URL'].astype(str).str.lower().apply(lambda url: url.split('/')[-1])
+        if anchor in target_keywords.values:
+            return "Exact match"
+        if any(anchor in url.lower() for url in df['Target URL'].astype(str)):
+            return "Optimisée"
+    except:
+        pass
     return "Autre"
 
         df['Anchor Type'] = anchor_col.apply(categorize_anchor)
